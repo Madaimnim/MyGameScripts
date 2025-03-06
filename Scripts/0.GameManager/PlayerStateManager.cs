@@ -8,8 +8,8 @@ public class PlayerStateManager : MonoBehaviour
 {
     #region 定義
     public static PlayerStateManager Instance { get; private set; }
-    public readonly Dictionary<int, PlayerStats> playerStatesDtny = new Dictionary<int, PlayerStats>();
-    public List<int> unlockedPlayerIDsList = new List<int> { 1,2 };
+    public Dictionary<int, PlayerStats> playerStatesDtny = new Dictionary<int, PlayerStats>();
+    public List<int> unlockedPlayerIDsList = new List<int>();
     public List<Vector2> spawnPositionsList= new List<Vector2>();
 
     #endregion
@@ -24,15 +24,15 @@ public class PlayerStateManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
-        Debug.Log($"🔓 [PlayerStateManager] 初始已解鎖角色 ID: {string.Join(", ", unlockedPlayerIDsList)}");
     }
     #endregion
 
     private IEnumerator Start() {
         yield return StartCoroutine(GameManager.Instance.WaitForDataReady());
+        UnlockPlayer(1);
+        UnlockPlayer(2);
 
     }
-
 
     public void UnlockPlayer(int playerID) {
         if (!unlockedPlayerIDsList.Contains(playerID))
@@ -40,11 +40,6 @@ public class PlayerStateManager : MonoBehaviour
             unlockedPlayerIDsList.Add(playerID);
         }
     }
-
-    public bool IsPlayerUnlocked(int playerID) {
-        return unlockedPlayerIDsList.Contains(playerID);
-    }
-
 
     #region SpawnPlayer(int playerID, Vector3 position, Quaternion rotation)
     public GameObject SpawnPlayer(int playerID, Vector3 position, Quaternion rotation) {
@@ -72,30 +67,15 @@ public class PlayerStateManager : MonoBehaviour
     }
     #endregion
 
-    #region GetPlayerState(int playerID)方法
-    public PlayerStats GetPlayerState(int playerID) {
-        return playerStatesDtny.TryGetValue(playerID, out var state) ? state : null;
-    }
-    #endregion
-
     #region SetPlayerStatesDtny(PlayerStatData playerStatData)方法
-    //由GameManager調用，將載入結果存入playerStatesDtny
     public void SetPlayerStatesDtny(PlayerStatData playerStatData) {
-        Debug.Log($"🔄 [PlayerStateManager] 進入 SetPlayerStatesDtny()，當前 unlockedPlayerIDsList: {string.Join(", ", unlockedPlayerIDsList)}");
 
         playerStatesDtny.Clear();
         foreach (var stat in playerStatData.playerStatsList)
         {
             playerStatesDtny[stat.playerID] = new PlayerStats(stat);
         }
-
-        Debug.Log($"✅ [PlayerStateManager] 已加載 {playerStatesDtny.Count} 個角色");
-        Debug.Log($"🔍 [PlayerStateManager] 載入的角色 ID: {string.Join(", ", playerStatesDtny.Keys)}");
-
-        Debug.Log($"🔄 [PlayerStateManager] 離開 SetPlayerStatesDtny()，當前 unlockedPlayerIDsList: {string.Join(", ", unlockedPlayerIDsList)}");
     }
-
-
     #endregion
     #region 建構
     [System.Serializable]
@@ -123,25 +103,14 @@ public class PlayerStateManager : MonoBehaviour
         public SkillData GetSkillAtSlot(int slotIndex) {
             if (slotIndex < 0 || slotIndex >= equippedSkillIDList.Count)
             {
-                Debug.LogError($"❌ [PlayerStateManager] 嘗試讀取超出範圍的技能槽: {slotIndex}");
+                Debug.LogError($"[PlayerStateManager] 嘗試讀取未裝備的技能槽: {slotIndex}");
                 return null;
             }
 
             int skillID = equippedSkillIDList[slotIndex];
             if (skillID == -1) return null; // -1 代表該技能槽未裝備技能
 
-            Debug.Log($"🟡 [PlayerStateManager] 嘗試從 skillPoolList 找技能 ID: {skillID}");
-
             SkillData foundSkill = skillPoolList.Find(skill => skill.skillID == skillID);
-
-            if (foundSkill == null)
-            {
-                Debug.LogError($"❌ [PlayerStateManager] 在 skillPoolList 找不到技能 ID: {skillID}");
-            }
-            else
-            {
-                Debug.Log($"✅ [PlayerStateManager] 找到技能: {foundSkill.skillName} (ID: {skillID})");
-            }
 
             return foundSkill;
         }
@@ -182,12 +151,7 @@ public class PlayerStateManager : MonoBehaviour
 
             unlockedSkillIDList = new List<int>(original.unlockedSkillIDList);
             equippedSkillIDList = new List<int>(original.equippedSkillIDList);
-
-            Debug.Log($"✅ [PlayerStats] 初始化角色: {playerName} (ID: {playerID})");
-            Debug.Log("🔍 [PlayerStats] unlockedSkillIDList: " + string.Join(", ", unlockedSkillIDList));
-            Debug.Log("🔍 [PlayerStats] equippedSkillIDList: " + string.Join(", ", equippedSkillIDList));
         }
-
 
         [System.Serializable]
         public class SkillData

@@ -8,15 +8,16 @@ public class UIStatusController : MonoBehaviour
     public TextMeshProUGUI[] statusTextsArray; // 角色基本狀態顯示（前 6 個）
     public Button leftButton, rightButton;
 
+    private PlayerStateManager.PlayerStats currentPlayer;
+
     private void Start() {
     }
 
     private void OnEnable() {
-        EventBus.Listen<UICurrentPlayerChangEvent>(UpdatePlayerStatusUI);
+        EventBus.Listen<UICurrentPlayerChangEvent>(OnUICurrentPlayerChanged);
 
         if (leftButton != null && rightButton != null)
         {
-            Debug.Log("✅ [UIStatusController] 左右切換按鈕成功綁定事件");
             leftButton.onClick.AddListener(UIManager.Instance.ChangLastPlayer);
             rightButton.onClick.AddListener(UIManager.Instance.ChangNextPlayer);
         }
@@ -24,18 +25,23 @@ public class UIStatusController : MonoBehaviour
         {
             Debug.LogError("❌ [UIStatusController] 左右按鈕未綁定！");
         }
+        currentPlayer = UIManager.GetCurrentPlayer();
+        RefreshPlayerStatusUI();
     }
 
     private void OnDisable() {
-        EventBus.StopListen<UICurrentPlayerChangEvent>(UpdatePlayerStatusUI);
+        EventBus.StopListen<UICurrentPlayerChangEvent>(OnUICurrentPlayerChanged);
+
         leftButton.onClick.RemoveListener(UIManager.Instance.ChangLastPlayer);
         rightButton.onClick.RemoveListener(UIManager.Instance.ChangNextPlayer);
     }
 
-    private void UpdatePlayerStatusUI(UICurrentPlayerChangEvent eventData) {
-        PlayerStateManager.PlayerStats currentPlayer = eventData.currentPlayer;
-        Debug.Log($"🟢 [UIStatusController] 更新 UI，角色: {currentPlayer.playerName}");
 
+    private void OnUICurrentPlayerChanged(UICurrentPlayerChangEvent eventData) {
+        currentPlayer = eventData.currentPlayer;
+        RefreshPlayerStatusUI();
+    }
+    private void RefreshPlayerStatusUI() {
         playerIconSprite.sprite = currentPlayer.spriteIcon;
 
         if (statusTextsArray.Length >= 6)
@@ -48,5 +54,7 @@ public class UIStatusController : MonoBehaviour
             statusTextsArray[5].text = $"速度: {currentPlayer.moveSpeed}";
         }
     }
+
+
 
 }

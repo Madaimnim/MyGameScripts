@@ -39,7 +39,7 @@ public class UIInputController : MonoBehaviour
         }
     }
 
-    #region **🔹 UI 開啟與關閉邏輯**
+    #region **UI 開啟與關閉邏輯**
     public void OpenUIPanel(GameObject panel) {
         if (panel == null)
         {
