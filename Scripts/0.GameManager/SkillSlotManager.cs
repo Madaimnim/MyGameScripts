@@ -31,18 +31,16 @@ public class SkillSlotManager : MonoBehaviour
         for (int i = 0; i < currentPlayer.equippedSkillIDList.Count; i++)
         {
             int skillID = currentPlayer.equippedSkillIDList[i];
-            var skill = currentPlayer.GetSkillAtSlot(i);
+            var skill = currentPlayer.GetSkillAtSkillSlot(i);
             EventBus.Trigger(new UISkillChangeEvent(i, skill));
         }
     }
-
-
 
     private void OnEquipSkill(EquipSkillEvent eventData) {
         if (currentPlayer == null) return;
 
         currentPlayer.SetSkillAtSlot(eventData.slotIndex, eventData.skillID);
-        var newSkill = currentPlayer.GetSkillAtSlot(eventData.slotIndex);
+        var newSkill = currentPlayer.GetSkillAtSkillSlot(eventData.slotIndex);
 
         EventBus.Trigger(new UISkillChangeEvent(eventData.slotIndex, newSkill));
     }

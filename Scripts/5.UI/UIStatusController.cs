@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using System.Collections.Generic;
 
 public class UIStatusController : MonoBehaviour
 {
@@ -10,11 +11,15 @@ public class UIStatusController : MonoBehaviour
 
     private PlayerStateManager.PlayerStats currentPlayer;
 
-    private void Start() {
-    }
 
     private void OnEnable() {
         EventBus.Listen<UICurrentPlayerChangEvent>(OnUICurrentPlayerChanged);
+        if (UIManager.Instance == null)
+        {
+            Debug.LogError("❌ [UIManager]為空！");
+            return;
+        }
+
 
         if (leftButton != null && rightButton != null)
         {
@@ -26,7 +31,7 @@ public class UIStatusController : MonoBehaviour
             Debug.LogError("❌ [UIStatusController] 左右按鈕未綁定！");
         }
         currentPlayer = UIManager.GetCurrentPlayer();
-        RefreshPlayerStatusUI();
+        RefreshPlayerStatusText();
     }
 
     private void OnDisable() {
@@ -39,11 +44,13 @@ public class UIStatusController : MonoBehaviour
 
     private void OnUICurrentPlayerChanged(UICurrentPlayerChangEvent eventData) {
         currentPlayer = eventData.currentPlayer;
-        RefreshPlayerStatusUI();
+        SetActiveUIPlayer(currentPlayer.playerID);
+        RefreshPlayerStatusText();
     }
-    private void RefreshPlayerStatusUI() {
-        playerIconSprite.sprite = currentPlayer.spriteIcon;
 
+    #region RefreshPlayerStatusText()
+    //更新狀態文字，執行RenderTexture撥放角色預覽動畫
+    private void RefreshPlayerStatusText() {
         if (statusTextsArray.Length >= 6)
         {
             statusTextsArray[0].text = $"等級: {currentPlayer.level}";
@@ -54,7 +61,19 @@ public class UIStatusController : MonoBehaviour
             statusTextsArray[5].text = $"速度: {currentPlayer.moveSpeed}";
         }
     }
+    #endregion
 
-
-
+    #region SetActiveUIPlayer(int playerID)
+    //每切換當前UI角色執行，將activePlayerUIDtny中的角色物件Active
+    public void SetActiveUIPlayer(int playerID) {
+        foreach (var kvp in UIManager.Instance.activeUIPlayersDtny) // 遍歷所有角色 UI
+        {
+            bool isActive = (kvp.Key == playerID); // 只有當前角色 UI 設為 true
+            kvp.Value.SetActive(isActive);
+            Animator animator = kvp.Value.GetComponent<Animator>();
+            if (isActive) // 如果是當前選擇的角色，播放動畫
+                animator.Play(Animator.StringToHash("Attack")); // 播放指定動畫
+        }
+    }
+    #endregion
 }

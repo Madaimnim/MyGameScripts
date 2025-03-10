@@ -4,6 +4,7 @@ public class GamePauseManager : MonoBehaviour
 {
     #region 公開定義
     public static GamePauseManager Instance;
+    public bool Pause = false;
     #endregion
     #region 私有定義
     private bool isPaused = false;
@@ -22,8 +23,14 @@ public class GamePauseManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
-
     #endregion
+
+    private void Update() {
+        if (Pause)
+            isPaused = true;
+        else
+            isPaused = false;
+    }
 
     #region 公開方法PauseGame()
     public void PauseGame() {

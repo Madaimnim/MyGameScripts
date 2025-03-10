@@ -32,6 +32,7 @@ public class GameManager : MonoBehaviour
     }
     private IEnumerator Start() {
         yield return Addressables.InitializeAsync();
+
         yield return LoadPlayerStatsList();
         yield return LoadEnemyStatsList();
     }
@@ -45,7 +46,6 @@ public class GameManager : MonoBehaviour
             PlayerStateManager.Instance.SetPlayerStatesDtny(handle.Result);
             IsPlayerDataLoaded = true;
         }
-
     }
 
     private IEnumerator LoadEnemyStatsList() {

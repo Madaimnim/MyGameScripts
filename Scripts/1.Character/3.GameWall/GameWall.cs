@@ -41,7 +41,7 @@ public class GameWall : MonoBehaviour, IDamageable
         
     #region TakeDamage()方法，
 
-    public void TakeDamage(int damage) {
+    public void TakeDamage(int damage,float knockedForece) {
         takeDamage = damage;
         currentHp -= takeDamage;
         currentHp = Mathf.Clamp(currentHp, 0, maxHp);

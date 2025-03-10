@@ -5,32 +5,35 @@ using UnityEngine;
 public class Player : MonoBehaviour, IDamageable
 {
     #region 公開變數
+    public int playerID;
     public PlayerStateManager.PlayerStats playerStats; // 玩家 ID，由 Inspector 設定
     public PlayerAI playerAI;
     public Animator animator;
     public Rigidbody2D rb;
     public SpriteRenderer spriteRenderer;
     public BehaviorTree behaviorTree;
-    public AttackSpawner attackSpawner;
-    public SkillController skillController;
+    public PlayerSkillSpawner skillSpawner;
     public SkillStrategyBase skillStrategy; // 存儲技能策略
     public ShadowController shadowController;
     public float stopMoveDragPower;
 
     public event Action<int, int> Event_HpChanged; // (當前血量, 最大血量)
     #endregion
-    #region 私有變數
-    private PlayerStateManager.PlayerStats playerState;
-    #endregion
 
     #region Awake()方法
     private void Awake() {
-        if (playerState == null)
-            Debug.LogError($"❌ [Player] 找不到 ID {playerStats.playerID} 的 PlayerState！");
-        if (playerAI == null)
-            Debug.LogError("❌ [Player] PlayerAI 未設定，請在 Inspector 拖入！");
     }
     #endregion
+
+    #region 
+    private IEnumerator Start() {
+        yield return StartCoroutine(GameManager.Instance.WaitForDataReady());
+        playerStats = PlayerStateManager.Instance.playerStatesDtny[playerID];
+        Debug.Log($"腳色名：{playerStats.playerName}");
+    }
+    #endregion
+
+
 
     #region 公開方法Initialize(PlayerStateManager.PlayerStats stats)
     //提供PlayerStateManager呼叫初始化使用
@@ -42,14 +45,14 @@ public class Player : MonoBehaviour, IDamageable
     #endregion
 
     #region 公開方法 TakeDamage()
-    public void TakeDamage(int takeDamage) {
-        if (playerState == null) return;
+    public void TakeDamage(int takeDamage, float knockedForce) {
+        if (playerStats == null) return;
 
-        playerState.currentHealth -= takeDamage;
-        playerState.currentHealth = Mathf.Clamp(playerState.currentHealth, 0, playerState.maxHealth);
-        Debug.Log($"⚠️ 玩家 {playerStats.playerID} 受傷！當前血量: {playerState.currentHealth}");
+        playerStats.currentHealth -= takeDamage;
+        playerStats.currentHealth = Mathf.Clamp(playerStats.currentHealth, 0, playerStats.maxHealth);
+        Debug.Log($"⚠️ 玩家 {playerStats.playerID} 受傷！當前血量: {playerStats.currentHealth}");
 
-        Event_HpChanged?.Invoke(playerState.currentHealth, playerState.maxHealth); // 更新 UI 血量
+        Event_HpChanged?.Invoke(playerStats.currentHealth, playerStats.maxHealth); // 更新 UI 血量
         StartCoroutine(FlashWhite(0.1f)); // 執行閃白協程
         ShowDamageText(takeDamage); // 顯示傷害數字
     }

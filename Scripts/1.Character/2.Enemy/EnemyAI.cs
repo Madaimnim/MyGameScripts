@@ -15,8 +15,7 @@ public class EnemyAI : MonoBehaviour
     public Rigidbody2D rb;
     public MoveStrategyBase moveStrategy; // 存儲移動策略
     public SkillStrategyBase skillStrategy; // 存儲技能策略
-    public SkillController skillController;
-    public AttackSpawner attackSpawner;
+    public EnemySkillSpawner skillSpawner;
     public BehaviorTree behaviorTree;
     public ShadowController shadowController;
     public float stopMoveDragPower;

@@ -13,50 +13,62 @@ public class Enemy : MonoBehaviour, IDamageable
     public Rigidbody2D rb;
     public SpriteRenderer spriteRenderer;
     public BehaviorTree behaviorTree;
-    public AttackSpawner attackSpawner;
-    public EnemyStateManager.EnemyStats States { get; private set; }
+    public EnemySkillSpawner skillSpawner;
+    public EnemyStateManager.EnemyStats enemyStats { get; private set; }
+
+    public Action<int,int> Event_HpChanged;
     #endregion
     #region 私有變數
     private float lastActionTime;
     private int currentHealth;
     #endregion
 
-    #region Awake()方法
+    #region 生命週期
     private void Awake() {
         lastActionTime = -Mathf.Infinity;
         SetEnemyData();
     }
-    #endregion
-    #region OnEnable()方法
-    private void OnEnable() {
-    }
-    #endregion
-    #region OnDisable()方法
-    private void OnDisable() {
-    }
-    #endregion
-    #region Start()方法
-    private void Start() {
+
+    private void OnEnable() {    }
+    private void OnDisable() {    }
+    private IEnumerable Start() {
+        yield return StartCoroutine(GameManager.Instance.WaitForDataReady());
+        enemyStats = EnemyStateManager.Instance.enemyStatesDtny[enemyID];
         //Todo Event_HpChanged?.Invoke(currentHealth, Stats.maxHealth);// 觸發事件，通知 UI 初始血量
     }
+    private void Update() {}
     #endregion
 
-    #region Update()方法
-    private void Update() {
+    #region 公開方法Initialize(EnemyStateManager.EnemyStats stats)
+    //提供EnemyStateManager呼叫初始化使用
+    public void Initialize(EnemyStateManager.EnemyStats stats) {
+        enemyStats = stats;
+        transform.name = $"Enemy_{enemyStats.enemyID} ({enemyStats.enemyName})";
+        Debug.Log($"[EnemyController] {enemyStats.enemyName} 已初始化，等級 {enemyStats.level}，血量 {enemyStats.maxHealth}");
     }
     #endregion
 
     #region 公開TakeDamage()方法
-    public void TakeDamage(int takeDamage) {
+    public void TakeDamage(int takeDamage,float knockedForce) {
         currentHealth -= takeDamage;
-        //Todo currentHealth = Mathf.Clamp(currentHealth, 0, Stats.maxHealth);
-        Debug.Log($"敵人 {enemyID} 受傷！當前血量: {currentHealth}");
+        currentHealth = Mathf.Clamp(currentHealth, 0, enemyStats.maxHealth); 
+        Event_HpChanged?.Invoke(currentHealth, enemyStats.maxHealth);//觸發事件，通知 UI 更新血量
 
-
-        //Todo Event_HpChanged?.Invoke(currentHealth, Stats.maxHealth);//觸發事件，通知 UI 更新血量
+        ApplyKnockback(knockedForce);
 
         StartCoroutine(FlashWhite(0.1f));//執行閃白協程，替換材質
+
         ShowDamageText(takeDamage);//顯示damage數字TEXT
+    }
+    #endregion
+
+    #region 私有ApplyKnockback()方法
+    private void ApplyKnockback(float force) {
+        if (rb != null)
+        {
+            rb.velocity = Vector2.zero; // ✅ 先清除當前速度，避免擊退力疊加
+            rb.AddForce(new Vector2(1,0) * force, ForceMode2D.Impulse); // ✅ 添加瞬間衝擊力
+        }
     }
     #endregion
 

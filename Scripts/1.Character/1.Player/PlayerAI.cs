@@ -17,9 +17,6 @@ public class PlayerAI : MonoBehaviour
             Debug.LogError("❌ [PlayerAI] Player 未設定，請在 Inspector 拖入！");
             return;
         }
-        //Todo playerState = PlayerStateManager.Instance.InitializePlayerState(player.playerID);
-        if (playerState == null)
-            Debug.LogError("❌ [PlayerAI] 無法獲取 PlayerState！");
     }
     #endregion
 

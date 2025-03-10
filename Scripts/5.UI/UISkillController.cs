@@ -6,83 +6,92 @@ using TMPro;
 
 public class UISkillController : MonoBehaviour
 {
-    public Button[] skillButtons;  // 技能槽4按鈕
-    public TextMeshProUGUI[] skillNames;  // 對應技能名稱的 Text
-    public GameObject skillSelectionPanel;  // 已解鎖技能選擇面板
-    public GameObject skillButtonPrefab;  // 技能選擇按鈕的預製體
-    private PlayerStateManager.PlayerStats currentPlayer;
+    public Button[] slotSkillButtons;  // 技能槽4個按鈕
+    public TextMeshProUGUI[] slotSkillNames;  // 技能槽技能名稱的 Text
     private PlayerStateManager.PlayerStats.SkillData[] displayedSkills = new PlayerStateManager.PlayerStats.SkillData[4];
+
+    public GameObject skillSelectionPanel;  // 技能選擇面板
+    public GameObject skillSelectionButtonPrefab;  // 技能選擇按鈕的預製體
+
+    private PlayerStateManager.PlayerStats currentPlayer;
+    private Vector2 originSkillSelectionPanelPosition;
 
     private void OnEnable() {
         EventBus.Listen<UISkillChangeEvent>(OnSkillChanged);
         EventBus.Listen<UICurrentPlayerChangEvent>(OnUICurrentPlayerChanged);
 
+        originSkillSelectionPanelPosition = new Vector2(skillSelectionPanel.transform.position.x, skillSelectionPanel.transform.position.y);
+        
         skillSelectionPanel.SetActive(false);
-        // 監聽技能槽按鈕點擊事件
-        for (int i = 0; i < skillButtons.Length; i++)
+
+        // 監聽技能槽4個按鈕點擊事件，並觸發ShowAvailableSkills(slotIndex))方法，顯示可選擇的更新技能
+        for (int i = 0; i < slotSkillButtons.Length; i++)
         {
             int slotIndex = i;
-            skillButtons[i].onClick.AddListener(() => ShowAvailableSkills(slotIndex));
+            slotSkillButtons[i].onClick.AddListener(() => ShowAvailableSkills(slotIndex));
         }
         currentPlayer=UIManager.GetCurrentPlayer();
         RefreshSkillSlotUI(currentPlayer);
-
     }
     private void OnDisable() {
         EventBus.StopListen<UISkillChangeEvent>(OnSkillChanged);
         EventBus.StopListen<UICurrentPlayerChangEvent>(OnUICurrentPlayerChanged);
 
-        for (int i = 0; i < skillButtons.Length; i++)
+        for (int i = 0; i < slotSkillButtons.Length; i++)
         {
-            skillButtons[i].onClick.RemoveAllListeners();
+            slotSkillButtons[i].onClick.RemoveAllListeners();
         }
     }
 
+    #region 監聽者：當「技能變更」事件、「當前腳色變更」事件觸發時，執行該方法
+    //當某技能槽技能變更時，執行UpdateSkillButton方法，更新按鈕及文字。
     private void OnSkillChanged(UISkillChangeEvent eventData) {
         displayedSkills[eventData.slotIndex] = eventData.newSkill;
         UpdateSkillButton(eventData.slotIndex, eventData.newSkill);
     }
-
-
+    //UIManager更新currentPlayer時，此類中的currentPlayer跟著變更
     private void OnUICurrentPlayerChanged(UICurrentPlayerChangEvent eventData) {
         currentPlayer = eventData.currentPlayer;  
     }
+    #endregion
 
+    #region 根據當前腳色及其裝備槽上的技能，更新displayeredSkill[]，提供給UpdateSkillbutton()方法，並更新技能按鈕及文字
     private void RefreshSkillSlotUI(PlayerStateManager.PlayerStats currentPlayer) {
         this.currentPlayer = currentPlayer;
         if (this.currentPlayer == null) return;
         for (int i = 0; i < displayedSkills.Length; i++)
         {
-            displayedSkills[i] = this.currentPlayer.GetSkillAtSlot(i);
+            displayedSkills[i] = this.currentPlayer.GetSkillAtSkillSlot(i);
             UpdateSkillButton(i, displayedSkills[i]);
         }
     }
-
+    #endregion
+    #region UpdateSkillButton方法：根據技能槽及技能資料，更新技能按鈕可互動性、文字名稱。
     private void UpdateSkillButton(int index, PlayerStateManager.PlayerStats.SkillData skill) {
-        if (index < 0 || index >= skillButtons.Length || index >= skillNames.Length)
+        if (index < 0 || index >= slotSkillButtons.Length || index >= slotSkillNames.Length)
         {
             Debug.LogError($"❌ [UISkillController] 技能槽索引超出範圍: {index}");
             return;
         }
+
         if (skill != null)
         {
-            skillNames[index].text = skill.skillName;
-            skillButtons[index].interactable = true;
+            slotSkillNames[index].text = skill.skillName;
         }
         else
         {
-            skillNames[index].text = "空";
-            skillButtons[index].interactable = false;
+            slotSkillNames[index].text = "空";
         }
     }
+    #endregion
 
-
-    /// <summary>
-    /// 顯示當前角色未裝備的可選技能
-    /// </summary>
+    #region 顯示及創建可選技能清單
     private void ShowAvailableSkills(int slotIndex) {
-        if (currentPlayer == null) return;
+        List<PlayerStateManager.PlayerStats.SkillData> availableSkills = new List<PlayerStateManager.PlayerStats.SkillData>();
 
+        skillSelectionPanel.transform.position = new Vector2(originSkillSelectionPanelPosition.x, originSkillSelectionPanelPosition.y);
+
+        if (currentPlayer == null) return;
         // 清除舊的技能選擇按鈕
         foreach (Transform child in skillSelectionPanel.transform)
         {
@@ -90,15 +99,14 @@ public class UISkillController : MonoBehaviour
         }
 
         // 獲取當前角色的所有可用技能（已解鎖但未裝備的）
-        List<PlayerStateManager.PlayerStats.SkillData> availableSkills = new List<PlayerStateManager.PlayerStats.SkillData>();
-
+        
         foreach (var skillID in currentPlayer.unlockedSkillIDList)
         {
             // 確保該技能未被裝備
             if (!currentPlayer.equippedSkillIDList.Contains(skillID))
             {
                 // 從 skillPoolList 中尋找對應的技能數據
-                var skill = currentPlayer.skillPoolList.Find(s => s.skillID == skillID);
+                var skill = currentPlayer.skillPoolDtny[skillID];
                 if (skill != null)
                 {
                     availableSkills.Add(skill);
@@ -110,13 +118,12 @@ public class UISkillController : MonoBehaviour
             }
         }
 
-
         // 創建按鈕來選擇技能
         foreach (var skill in availableSkills)
         {
-            GameObject skillButtonObj = Instantiate(skillButtonPrefab, skillSelectionPanel.transform);
-            Button skillButton = skillButtonObj.GetComponent<Button>();
-            TextMeshProUGUI skillText = skillButtonObj.GetComponentInChildren<TextMeshProUGUI>();
+            GameObject skillSelectionButtonObj = Instantiate(skillSelectionButtonPrefab, skillSelectionPanel.transform);
+            Button skillButton = skillSelectionButtonObj.GetComponent<Button>();
+            TextMeshProUGUI skillText = skillSelectionButtonObj.GetComponentInChildren<TextMeshProUGUI>();
 
             if (skillText != null)
             {
@@ -125,12 +132,21 @@ public class UISkillController : MonoBehaviour
 
             skillButton.onClick.AddListener(() => EquipSkill(slotIndex, skill.skillID));
         }
-        if (currentPlayer.unlockedSkillIDList.Count >0)
+        if (currentPlayer.unlockedSkillIDList.Count > 0)
         {
             skillSelectionPanel.SetActive(true);
-        }
-      
 
+            int extraButtons = availableSkills.Count - 7;
+            if (extraButtons > 0)
+            {
+                RectTransform panelRect = skillSelectionPanel.GetComponent<RectTransform>();
+                Vector3 newPos = panelRect.anchoredPosition;
+                newPos.y += extraButtons * 70; // 每多一個按鈕，往上移動 70 單位
+                panelRect.anchoredPosition = newPos;
+            }
+        }
+        else
+            skillSelectionPanel.SetActive(false);
     }
 
     private void EquipSkill(int slotIndex, int skillID) {
@@ -139,4 +155,5 @@ public class UISkillController : MonoBehaviour
         EventBus.Trigger(new EquipSkillEvent(slotIndex, skillID));  // 觸發裝備事件
         skillSelectionPanel.SetActive(false);  // 關閉技能選擇面板
     }
+    #endregion
 }

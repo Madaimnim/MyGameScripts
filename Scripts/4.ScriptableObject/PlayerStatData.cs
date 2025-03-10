@@ -44,8 +44,14 @@ public class PlayerStatData : ScriptableObject
         public class SkillLevelData
         {
             public int level;
-            public int attackPower;
             public float cooldownTime;
+
+            public float moveSpeed;
+            public float knockForce;
+            public float destroySelfDelay;
+            public int attackPower;
+            public LayerMask targetLayers;
+
             public GameObject attackPrefab;
             public GameObject attackDetectPrefab;
         }

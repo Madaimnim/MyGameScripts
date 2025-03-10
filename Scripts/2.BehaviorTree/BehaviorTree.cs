@@ -29,7 +29,6 @@ public class BehaviorTree:MonoBehaviour
     [HideInInspector] public bool isCooldownComplete = true;// 是否冷卻結束
 
     [HideInInspector] public bool canChangeAnim = true;    //是否可換播動畫
-    public SkillController skillController;
     #endregion
     #region 公開Event Action
     public event Action Event_Attack01;
