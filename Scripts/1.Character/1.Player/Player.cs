@@ -40,7 +40,6 @@ public class Player : MonoBehaviour, IDamageable
     public void Initialize(PlayerStateManager.PlayerStats stats) {
         playerStats = stats;
         transform.name = $"Player_{playerStats.playerID} ({playerStats.playerName})";
-        Debug.Log($"[PlayerController] {playerStats.playerName} 已初始化，等級 {playerStats.level}，血量 {playerStats.maxHealth}");
     }
     #endregion
 

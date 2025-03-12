@@ -32,6 +32,12 @@ public class GameSceneManager: MonoBehaviour
         {
             Destroy(gameObject);
         }
+        GameStartButton.gameObject.SetActive(false);
+    }
+
+    private IEnumerator Start() {
+        yield return StartCoroutine(GameManager.Instance.WaitForDataReady());
+        GameStartButton.gameObject.SetActive(true);
     }
 
     #region 公開方法 LoadSceneGameStart()

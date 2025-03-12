@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-public class DetectForLayer : MonoBehaviour
+public class TargetDetector : MonoBehaviour
 {
     #region 公開變數
 
@@ -9,7 +9,7 @@ public class DetectForLayer : MonoBehaviour
 
     #region 私有變數
     private LayerMask targetLayers; // ✅ 支援多選 Layer
-    private bool hasDetectedTarget;
+    private bool hasTarget;
     #endregion
 
     #region Awake()方法
@@ -20,8 +20,7 @@ public class DetectForLayer : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D collision) {
         if (((1 << collision.gameObject.layer) & targetLayers) != 0)
         {
-            hasDetectedTarget = true; // ✅ 設為 true，表示偵測到目標
-            Debug.Log($"偵測到目標: {collision.gameObject.name}");
+            hasTarget = true; // ✅ 設為 true，表示偵測到目標
         }
     }
     #endregion
@@ -30,8 +29,7 @@ public class DetectForLayer : MonoBehaviour
         // ✅ 只檢測 Layer，不用處理 IDamageable
         if (((1 << collision.gameObject.layer) & targetLayers) != 0)
         {
-            hasDetectedTarget = false;
-            Debug.Log("所有目標已離開，重置 hasDetectedTarget = false");
+            hasTarget = false;
         }
     }
     #endregion

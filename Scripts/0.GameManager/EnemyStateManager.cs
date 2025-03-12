@@ -9,10 +9,8 @@ public class EnemyStateManager : MonoBehaviour
     #region 定義
     public static EnemyStateManager Instance { get; private set; }
     public Dictionary<int, EnemyStats> enemyStatesDtny = new Dictionary<int, EnemyStats>();
-    public Dictionary<int, GameObject> activeEnemysDtny = new Dictionary<int, GameObject>();
 
     public GameObject enemyParent;
-    public HashSet<int> unlockedEnemyIDsHashSet = new HashSet<int>();
     public Vector3 stageSpawnPosition;
 
     #endregion
@@ -34,6 +32,7 @@ public class EnemyStateManager : MonoBehaviour
     }
 
 
+
     #region SetEnemyStatesDtny(EnemyStatData enemyStatData)方法
     //GameManager載入資料時，存入本地的enemyStatesDtny
     public void SetEnemyStatesDtny(EnemyStatData enemyStatData) {
@@ -46,24 +45,8 @@ public class EnemyStateManager : MonoBehaviour
     }
     #endregion
 
-    #region UnlockAndSpawnEnemy(int enemyID)
-    //解鎖並生成腳色
-    public void UnlockAndSpawnEnemy(int enemyID) {
-        if (!unlockedEnemyIDsHashSet.Contains(enemyID))
-        {
-            unlockedEnemyIDsHashSet.Add(enemyID);
-            Debug.Log($"角色 {enemyID} 解鎖成功！");
-        }
-
-        Vector2 position = Vector2.zero;
-        GameObject enemyObject = SpawnEnemy(enemyID, position, Quaternion.identity, enemyParent);
-        enemyObject.SetActive(false);
-        activeEnemysDtny[enemyID] = enemyObject;
-    }
-
-
     #region SpawnEnemy(int enemyID, Vector3 position, Quaternion rotation)
-    //腳色生成
+    //怪物生成
     private GameObject SpawnEnemy(int enemyID, Vector3 position, Quaternion rotation, GameObject parentObject) {
         if (!enemyStatesDtny.TryGetValue(enemyID, out var enemyStats) || enemyStats.enemyPrefab == null)
         {
@@ -84,44 +67,9 @@ public class EnemyStateManager : MonoBehaviour
         {
             Debug.LogWarning($"[EnemyStateManager] 玩家 {enemyID} 沒有 EnemyController，無法初始化屬性");
         }
-
         return enemyPrefab;
     }
     #endregion
-    #endregion
-
-    #region ActivateALLEnemy()方法
-    //激活所有腳色，並放置到關卡的出生點上
-    public void ActivateAllEnemy() {
-        foreach (var enemyID in unlockedEnemyIDsHashSet)
-        {
-            GameObject currentEnemyObject = GetEnemyObject(enemyID);
-
-            currentEnemyObject.SetActive(true);
-
-            currentEnemyObject.transform.position = stageSpawnPosition;
-
-            stageSpawnPosition = new Vector3(stageSpawnPosition.x, stageSpawnPosition.y - 1, stageSpawnPosition.z);
-        }
-    }
-    #endregion
-    #region DeactivateAllEnemy()方法
-    //激活所有腳色，並放置到關卡的出生點上
-    public void DeactivateAllEnemy() {
-        foreach (var enemyID in unlockedEnemyIDsHashSet)
-        {
-            GetEnemyObject(enemyID).SetActive(false);
-            GetEnemyObject(enemyID).transform.position = new Vector2(0, 0);
-        }
-    }
-    #endregion
-
-    #region  GetEnemyObject(int enemyID)方法
-    public GameObject GetEnemyObject(int enemyID) {
-        return activeEnemysDtny.TryGetValue(enemyID, out GameObject enemy) ? enemy : null;
-    }
-    #endregion
-
 
     #region 建構
     [System.Serializable]

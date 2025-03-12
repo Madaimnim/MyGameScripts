@@ -33,13 +33,13 @@ public class EnemyAI : MonoBehaviour
     #region OnEnable()
     private void OnEnable() {
         behaviorTree.Event_Move += Move;
-        //behaviorTree.Event_Attack += Attack;
+        behaviorTree.Event_Attack01 += Attack;
     }
     #endregion
     #region OnDisable()
     private void OnDisable() {
         behaviorTree.Event_Move -= Move;
-        //behaviorTree.Event_Attack -= Attack;
+        behaviorTree.Event_Attack01 -= Attack;
     }
     #endregion
     #region Start()方法

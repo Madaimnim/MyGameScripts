@@ -19,12 +19,12 @@ public class EnemySliderController : MonoBehaviour
     #endregion
     #region OnEnable()方法
     private void OnEnable() {
-        //Todo enemy.Event_HpChanged += UpdateUIValue;
+        enemy.Event_HpChanged += UpdateUIValue;
     }
     #endregion
     #region ODisable()方法
     private void OnDisable() {
-        //Todo enemy.Event_HpChanged -= UpdateUIValue;
+        enemy.Event_HpChanged -= UpdateUIValue;
     }
     #endregion
     #region Start()方法

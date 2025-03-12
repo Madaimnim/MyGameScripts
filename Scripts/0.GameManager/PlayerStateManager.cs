@@ -39,7 +39,7 @@ public class PlayerStateManager : MonoBehaviour
         if (!unlockedPlayerIDsHashSet.Contains(playerID))
         {
             unlockedPlayerIDsHashSet.Add(playerID);
-            UIManager.Instance.UpdateAllUI();
+            //UIManager.Instance.UpdateUICrrentIndexAndPlayer();
             Debug.Log($"角色 {playerID} 解鎖成功！");
         }
 

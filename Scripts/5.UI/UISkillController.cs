@@ -20,8 +20,8 @@ public class UISkillController : MonoBehaviour
         EventBus.Listen<UISkillChangeEvent>(OnSkillChanged);
         EventBus.Listen<UICurrentPlayerChangEvent>(OnUICurrentPlayerChanged);
 
-        originSkillSelectionPanelPosition = new Vector2(skillSelectionPanel.transform.position.x, skillSelectionPanel.transform.position.y);
-        
+
+        originSkillSelectionPanelPosition = new Vector2(skillSelectionPanel.transform.position.x, skillSelectionPanel.transform.position.y); 
         skillSelectionPanel.SetActive(false);
 
         // 監聽技能槽4個按鈕點擊事件，並觸發ShowAvailableSkills(slotIndex))方法，顯示可選擇的更新技能
@@ -30,7 +30,10 @@ public class UISkillController : MonoBehaviour
             int slotIndex = i;
             slotSkillButtons[i].onClick.AddListener(() => ShowAvailableSkills(slotIndex));
         }
-        currentPlayer=UIManager.GetCurrentPlayer();
+
+        if(UIManager.Instance==null)
+                return;
+        PlayerStateManager.Instance.playerStatesDtny.TryGetValue(UIManager.Instance.currentPlayerId, out currentPlayer);
         RefreshSkillSlotUI(currentPlayer);
     }
     private void OnDisable() {
